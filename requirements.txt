@@ -1,0 +1,8 @@
+accelerate==0.23.0
+pymongo==4.5.0
+python-telegram-bot==20.5
+sentencepiece==0.1.99
+torch==2.2.0.dev20231004
+transformers==4.33.3
+uvicorn==0.23.2
+pre-commit==3.4.0
