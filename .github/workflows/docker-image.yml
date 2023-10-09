@@ -25,4 +25,4 @@ jobs:
             HF_TOKEN=${{ secrets.HF_TOKEN }}
             MODEL_NAME=${{ secrets.MODEL_NAME }}
           push: true
-          tags: my-image-name:$(date +%s)
+          tags: ${{ github.repository_owner }}:${{ env.NOW }}
