@@ -21,6 +21,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          build-args: HF_TOKEN=${{ secrets.HF_TOKEN }}
+          build-args: |
+            HF_TOKEN=${{ secrets.HF_TOKEN }}
+            MODEL_NAME=${{ secrets.MODEL_NAME }}
           push: true
-          tags: test
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/clockbox:latest
