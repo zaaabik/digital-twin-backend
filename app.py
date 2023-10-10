@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 from typing import Union
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 mongo_user_name = os.getenv("MONGO_USER_NAME")
 mongo_user_password = os.getenv("MONGO_USER_PASSWORD")
@@ -38,6 +38,9 @@ lm: LanguageModel = DialogLLM(hf_token=HF_TOKEN, model_name=MODEL_NAME)
 
 app = FastAPI()
 
+USER_STRING = "@@ВТОРОЙ@@"
+BOT_STRING = "@@ПЕРВЫЙ@@"
+
 
 @app.get("/ping")
 def ping():
@@ -58,6 +61,23 @@ def delete_user(user_id: str):
     return {}
 
 
+@app.get("/dialog/{user_id}")
+def get_user(user_id: str):
+    r"""
+    Get all user property by user id
+    Args:
+        user_id: User id passed to store in database
+    """
+    telegram_user_id: str = user_id
+
+    object_id = database.get_object_id_by_telegram_id(telegram_user_id=telegram_user_id)
+    if not object_id:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    user = database.get_user(object_id=object_id)
+    return user
+
+
 @app.patch("/dialog/{user_id}")
 def update_user_messages(user_id: str, text: str, username: Union[str, None] = None):
     r"""
@@ -69,27 +89,31 @@ def update_user_messages(user_id: str, text: str, username: Union[str, None] = N
             Default: ``None``
     """
     telegram_user_id: str = user_id
-    text_with_prefix = f"@@ВТОРОЙ@@ {text}"
 
-    database.create_user_if_not_exists(telegram_user_id=telegram_user_id, username=username)
+    object_id = database.find_or_create_user_if_not_exists(
+        telegram_user_id=telegram_user_id, username=username
+    )
     log.info("create_user_if_not_exists")
 
-    database.update_user_text(telegram_user_id=telegram_user_id, text=text_with_prefix)
-    log.info("update_user_text")
-
-    user = database.get_user(telegram_user_id=telegram_user_id)
+    user = database.get_user(object_id=object_id)
     full_context = user.context
-    context = full_context[-CONTEXT_SIZE:]
+    context = full_context[-(CONTEXT_SIZE - 1) :]
+    user_text_with_prefix = f"{USER_STRING} {text}"
+
+    context += (user_text_with_prefix,)
     str_context = " ".join(context)
-    context_for_generation = f"{str_context} @@ПЕРВЫЙ@@"
+    context_for_generation = f"{str_context} {BOT_STRING}"
     log.info(f"Context for model generation: {context_for_generation}")
 
     model_response = lm.generate(context_for_generation)
-    pure_response: str = model_response[: model_response.find("@@ВТОРОЙ@@")]
+    # find start of user tokens and return all before them
+    pure_response: str = model_response[: model_response.find(USER_STRING)]
     pure_response = pure_response.rstrip(" ")
 
-    model_response_to_db = f"@@ПЕРВЫЙ@@ {pure_response}"
-    database.update_user_text(telegram_user_id=telegram_user_id, text=model_response_to_db)
+    model_text_with_prefix = f"{BOT_STRING} {pure_response}"
+    database.update_user_text(
+        object_id=object_id, texts=(user_text_with_prefix, model_text_with_prefix)
+    )
     log.info("update_user_text model answer")
 
-    return {"response": pure_response, "full_text": model_response}
+    return {"bot_answer": pure_response}
