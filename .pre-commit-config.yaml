@@ -145,3 +145,44 @@ repos:
             "--extend-ignore=E203,E402,E501,F401,F841",
             "--exclude=logs/*,data/*",
           ]
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args: ["-rn", "-sn", "--rcfile=pylintrc", "--fail-on=I"]
+        exclude: tests(/\w*)*/functional/|tests/input|tests(/\w*)*data/|doc/
+      # We define an additional manual step to allow running pylint with a spelling
+      # checker in CI.
+      - id: pylint
+        alias: pylint-with-spelling
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args:
+          [
+            "-rn",
+            "-sn",
+            "--rcfile=pylintrc",
+            "--fail-on=I",
+            "--spelling-dict=en",
+          ]
+        exclude: tests(/\w*)*/functional/|tests/input|tests(/\w*)*data/|doc/
+        stages: [manual]
+      - id: sphinx-generated-doc
+        alias: sphinx-generated-doc
+        name: sphinx-generated-doc
+        entry: make -C doc/ html
+        pass_filenames: false
+        language: system
+        stages: [push]
+      - id: check-newsfragments
+        name: Check newsfragments
+        entry: python3 -m script.check_newsfragments
+        language: system
+        types: [text]
+        files: ^(doc/whatsnew/fragments)
+        exclude: doc/whatsnew/fragments/_.*.rst
