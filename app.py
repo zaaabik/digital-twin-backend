@@ -1,5 +1,10 @@
+"""Root file of service running REST api."""
+from __future__ import annotations
+
 import logging
 import os
+
+from fastapi import FastAPI, HTTPException
 
 from database.Interface import DataBase
 from database.mongo import MongoDataBase
@@ -9,10 +14,6 @@ from utils.logger import get_pylogger
 
 log = get_pylogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
-from typing import Union
-
-from fastapi import FastAPI, HTTPException
 
 mongo_user_name = os.getenv("MONGO_USER_NAME")
 mongo_user_password = os.getenv("MONGO_USER_PASSWORD")
@@ -57,7 +58,7 @@ def delete_user(user_id: str):
     """
     telegram_user_id: str = user_id
     database.remove_user(telegram_user_id=telegram_user_id)
-    log.info(f"Remove user {telegram_user_id}")
+    log.info("Remove user %s", telegram_user_id)
     return {}
 
 
@@ -79,7 +80,7 @@ def get_user(user_id: str):
 
 
 @app.patch("/dialog/{user_id}")
-def update_user_messages(user_id: str, text: str, username: Union[str, None] = None):
+def update_user_messages(user_id: str, text: str, username: str | None = None):
     r"""
     Update state of user, run language model and return response
     Args:
@@ -103,7 +104,7 @@ def update_user_messages(user_id: str, text: str, username: Union[str, None] = N
     context += (user_text_with_prefix,)
     str_context = " ".join(context)
     context_for_generation = f"{str_context} {BOT_STRING}"
-    log.info(f"Context for model generation: {context_for_generation}")
+    log.info("Context for model generation %s", context_for_generation)
 
     model_response = lm.generate(context_for_generation)
     # find start of user tokens and return all before them
