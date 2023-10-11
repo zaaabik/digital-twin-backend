@@ -79,7 +79,7 @@ def get_user(user_id: str):
 
 
 @app.patch("/dialog/{user_id}")
-def update_user_messages(user_id: str, text: str, username: str | None = None):
+def update_user_messages(user_id: str, text: str, username: str = ""):
     r"""
     Update state of user, run language model and return response
     Args:
