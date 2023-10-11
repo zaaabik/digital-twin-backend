@@ -17,7 +17,6 @@ logging.basicConfig(level=logging.INFO)
 
 mongo_user_name = os.environ["MONGO_USER_NAME"]
 mongo_user_password = os.environ["MONGO_USER_PASSWORD"]
-TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 HF_TOKEN = os.environ["HF_TOKEN"]
 MODEL_NAME = os.environ["MODEL_NAME"]
 CONTEXT_SIZE = 8
