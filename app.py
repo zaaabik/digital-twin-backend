@@ -15,11 +15,11 @@ from utils.logger import get_pylogger
 log = get_pylogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-mongo_user_name = os.getenv("MONGO_USER_NAME")
-mongo_user_password = os.getenv("MONGO_USER_PASSWORD")
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-HF_TOKEN = os.getenv("HF_TOKEN")
-MODEL_NAME = os.getenv("MODEL_NAME")
+mongo_user_name = os.environ["MONGO_USER_NAME"]
+mongo_user_password = os.environ["MONGO_USER_PASSWORD"]
+TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+HF_TOKEN = os.environ["HF_TOKEN"]
+MODEL_NAME = os.environ["MODEL_NAME"]
 CONTEXT_SIZE = 8
 
 connection_string = (
@@ -97,6 +97,10 @@ def update_user_messages(user_id: str, text: str, username: str | None = None):
     log.info("create_user_if_not_exists")
 
     user = database.get_user(object_id=object_id)
+    if not user:
+        log.error("Error while getting user telegram_user_id=%s", telegram_user_id)
+        raise OSError("Error while getting user telegram_user_id")
+
     full_context = user.context
     context = full_context[-(CONTEXT_SIZE - 1) :]
     user_text_with_prefix = f"{USER_STRING} {text}"
