@@ -108,7 +108,10 @@ class MongoDataBase(DataBase):
         output = UserContext(
             telegram_user_id=user_bson["telegram_user_id"],
             username=user_bson["username"],
-            system_prompt=user_bson["system_prompt"],
+            system_prompt=UserMessage(
+                role=user_bson["system_prompt"]["role"],
+                context=user_bson["system_prompt"]["context"],
+            ),
             context=context,
         )
 
