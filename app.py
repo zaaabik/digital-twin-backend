@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 connection_string = os.environ["DATABASE_CONNECTION_STRING"]
 HF_TOKEN = os.environ["HF_TOKEN"]
 MODEL_NAME = os.environ["MODEL_NAME"]
-CONTEXT_SIZE = 8
+CONTEXT_SIZE = int(os.environ["CONTEXT_SIZE"])
 
 TABLE_NAME = "users"
 DATABASE_NAME = "chat"
@@ -102,10 +102,7 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
         log.error("Error while getting user telegram_user_id=%s", telegram_user_id)
         raise OSError("Error while getting user telegram_user_id")
     user_question = UserMessage(role="user", context=text)
-    context_for_generation = user.context[-8:] + [
-        user_question,
-    ]
-    print(context_for_generation)
+    context_for_generation = [user.system_prompt] + user.context[-CONTEXT_SIZE:] + [user_question]
 
     full_context = generate_dialog(context_for_generation)
 

@@ -31,15 +31,14 @@ class MongoDataBase(DataBase):
             telegram_user_id: telegram id
             username: telegram username
         """
-        base_prompt_message = UserMessage("system", BASE_SYSTEM_PROMPT)
+        system_prompt = UserMessage("system", BASE_SYSTEM_PROMPT)
 
         bson = asdict(
             UserContext(
                 telegram_user_id=telegram_user_id,
                 username=username,
-                context=[
-                    base_prompt_message,
-                ],
+                system_prompt=system_prompt,
+                context=[],
             )
         )
         insert_result = self.collection.insert_one(bson)
@@ -109,6 +108,7 @@ class MongoDataBase(DataBase):
         output = UserContext(
             telegram_user_id=user_bson["telegram_user_id"],
             username=user_bson["username"],
+            system_prompt=user_bson["system_prompt"],
             context=context,
         )
 

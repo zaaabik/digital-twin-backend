@@ -9,6 +9,7 @@ class UserContext:
 
     telegram_user_id: str
     username: str | None
+    system_prompt: UserMessage
     context: list[UserMessage]
 
 
