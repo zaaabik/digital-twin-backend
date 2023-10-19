@@ -31,7 +31,7 @@ class LLama(LanguageModel):
                 "num_beams": 5,
                 "num_return_sequences": 5,
                 "pad_token_id": 0,
-                "length_penalty": +5.0,
+                # "length_penalty": +5.0,
                 "sequence_bias": {
                     self.get_tokens_as_tuple("http:"): -10.0,
                     self.get_tokens_as_tuple("🇷🇺"): -10.0,
