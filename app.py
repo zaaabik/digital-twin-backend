@@ -9,7 +9,7 @@ from fastapi import FastAPI, HTTPException
 from data.user_context import UserMessage
 from database.Interface import DataBase
 from database.mongo import MongoDataBase
-from language_model.DialogLLM import DialogLLM
+from language_model.LLama import LLama
 from language_model.model import LanguageModel
 from utils.logger import get_pylogger
 
@@ -35,7 +35,7 @@ database: DataBase = MongoDataBase(
 )
 
 log.info("Building LM model")
-lm: LanguageModel = DialogLLM(hf_token=HF_TOKEN, model_name=MODEL_NAME)
+lm: LanguageModel = LLama(hf_token=HF_TOKEN, model_name=MODEL_NAME)
 
 app = FastAPI()
 
