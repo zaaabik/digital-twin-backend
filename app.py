@@ -16,16 +16,10 @@ from utils.logger import get_pylogger
 log = get_pylogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-mongo_user_name = os.environ["MONGO_USER_NAME"]
-mongo_user_password = os.environ["MONGO_USER_PASSWORD"]
+connection_string = os.environ["DATABASE_CONNECTION_STRING"]
 HF_TOKEN = os.environ["HF_TOKEN"]
 MODEL_NAME = os.environ["MODEL_NAME"]
 CONTEXT_SIZE = 8
-
-connection_string = (
-    f"mongodb://{mongo_user_name}:{mongo_user_password}"
-    "@cluster0.3xrjcun.mongodb.net/?retryWrites=true&w=majority"
-)
 
 TABLE_NAME = "users"
 DATABASE_NAME = "chat"
