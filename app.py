@@ -23,9 +23,10 @@ MODEL_NAME = os.environ["MODEL_NAME"]
 CONTEXT_SIZE = 8
 
 connection_string = (
-    f"mongodb+srv://{mongo_user_name}:{mongo_user_password}"
+    f"mongodb://{mongo_user_name}:{mongo_user_password}"
     "@cluster0.3xrjcun.mongodb.net/?retryWrites=true&w=majority"
 )
+
 TABLE_NAME = "users"
 DATABASE_NAME = "chat"
 
@@ -38,9 +39,6 @@ log.info("Building LM model")
 lm: LanguageModel = LLama(hf_token=HF_TOKEN, model_name=MODEL_NAME)
 
 app = FastAPI()
-
-USER_STRING = "@@ВТОРОЙ@@"
-BOT_STRING = "@@ПЕРВЫЙ@@"
 
 
 @app.get("/ping")
@@ -121,8 +119,7 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
 
     model_response = lm.generate(full_context)
     # find start of user tokens and return all before them
-    pure_response: str = model_response[: model_response.find(USER_STRING)]
-    pure_response = pure_response.rstrip(" ")
+    pure_response: str = model_response
 
     model_answer = UserMessage(role="bot", context=pure_response)
     database.update_user_text(object_id=object_id, texts=[user_question, model_answer])

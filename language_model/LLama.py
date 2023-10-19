@@ -59,7 +59,6 @@ class LLama(LanguageModel):
             data = self.tokenizer(context, return_tensors="pt")
             data = {k: v.to(self.model.device) for k, v in data.items()}
             output_ids = self.model.generate(**data, generation_config=self.generation_config)
-            print(output_ids.shape)
             output_ids = [
                 self.tokenizer.decode(o[len(data["input_ids"][0]) :]) for o in output_ids
             ]
