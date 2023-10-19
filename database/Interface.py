@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from data.user_context import UserContext
+from data.user_context import UserContext, UserMessage
 
 
 class DataBase(ABC):
@@ -29,7 +29,7 @@ class DataBase(ABC):
         """
 
     @abstractmethod
-    def update_user_text(self, object_id: str, texts: tuple) -> None:
+    def update_user_text(self, object_id: str, texts: list[UserMessage]) -> None:
         r"""
         Add conversation to exists user
         Args:

@@ -6,6 +6,7 @@ import os
 
 from fastapi import FastAPI, HTTPException
 
+from data.user_context import UserMessage
 from database.Interface import DataBase
 from database.mongo import MongoDataBase
 from language_model.DialogLLM import DialogLLM
@@ -78,6 +79,15 @@ def get_user(user_id: str):
     return user
 
 
+def generate_dialog(messages: list[UserMessage]):
+    template = "<s> {role}: {content}\n</s>"
+    text = ""
+    for message in messages:
+        text += template.format(role=message.role, content=message.context)
+    text += "<s> bot: "
+    return text
+
+
 @app.patch("/dialog/{user_id}")
 def update_user_messages(user_id: str, text: str, username: str = ""):
     r"""
@@ -99,25 +109,23 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
     if not user:
         log.error("Error while getting user telegram_user_id=%s", telegram_user_id)
         raise OSError("Error while getting user telegram_user_id")
+    user_question = UserMessage(role="user", context=text)
+    context_for_generation = user.context[-8:] + [
+        user_question,
+    ]
+    print(context_for_generation)
 
-    full_context = user.context
-    context = full_context[-(CONTEXT_SIZE - 1) :]
-    user_text_with_prefix = f"{USER_STRING} {text}"
+    full_context = generate_dialog(context_for_generation)
 
-    context += (user_text_with_prefix,)
-    str_context = " ".join(context)
-    context_for_generation = f"{str_context} {BOT_STRING}"
-    log.info("Context for model generation %s", context_for_generation)
+    log.info("Context for model generation %s", full_context)
 
-    model_response = lm.generate(context_for_generation)
+    model_response = lm.generate(full_context)
     # find start of user tokens and return all before them
     pure_response: str = model_response[: model_response.find(USER_STRING)]
     pure_response = pure_response.rstrip(" ")
 
-    model_text_with_prefix = f"{BOT_STRING} {pure_response}"
-    database.update_user_text(
-        object_id=object_id, texts=(user_text_with_prefix, model_text_with_prefix)
-    )
+    model_answer = UserMessage(role="bot", context=pure_response)
+    database.update_user_text(object_id=object_id, texts=[user_question, model_answer])
     log.info("update_user_text model answer")
 
-    return {"bot_answer": pure_response}
+    return {"bot_answer": model_answer}

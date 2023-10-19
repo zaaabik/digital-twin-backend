@@ -5,8 +5,16 @@ from typing import Any
 
 from pymongo import MongoClient
 
-from data.user_context import UserContext
+from data.user_context import UserContext, UserMessage
 from database.Interface import DataBase
+
+BASE_SYSTEM_PROMPT = (
+    "меня зовут Артём Заболотный. Тебе 26 лет, ты закончил бакалавриат в университет "
+    "аэрокосмического приборостроения, магистратуру в Сколтехе и сейчас учишься в аспирантуре "
+    "Сколтеха. Ты работал с 2017 по 2020 в Радарио full-stack разработчиком на C#, GO, VUE, "
+    "а сейчас работаешь Senior Data Scientist в RnD отделе сбербанка. У тебя есть девушка и ее зовут "
+    "Марина, ты живешь с ней в Тбилиси "
+)
 
 
 class MongoDataBase(DataBase):
@@ -22,8 +30,16 @@ class MongoDataBase(DataBase):
             telegram_user_id: telegram id
             username: telegram username
         """
+        base_prompt_message = UserMessage("system", BASE_SYSTEM_PROMPT)
+
         bson = asdict(
-            UserContext(telegram_user_id=telegram_user_id, username=username, context=())
+            UserContext(
+                telegram_user_id=telegram_user_id,
+                username=username,
+                context=[
+                    base_prompt_message,
+                ],
+            )
         )
         insert_result = self.collection.insert_one(bson)
         return insert_result.inserted_id
@@ -40,14 +56,17 @@ class MongoDataBase(DataBase):
             return doc["_id"]
         return self.create_user(telegram_user_id, username)
 
-    def update_user_text(self, object_id: str, texts: tuple) -> None:
+    def update_user_text(self, object_id: str, texts: list[UserMessage]) -> None:
         r"""
         Add conversation to exists user
         Args:
             object_id: Mongo database ID
             texts: Tuple of conversation parts
         """
-        self.collection.update_one({"_id": object_id}, {"$push": {"context": {"$each": texts}}})
+        texts_mapped = [asdict(text) for text in texts]
+        self.collection.update_one(
+            {"_id": object_id}, {"$push": {"context": {"$each": texts_mapped}}}
+        )
 
     def get_object_id_by_telegram_id(self, telegram_user_id: str) -> Any:
         r"""
@@ -81,4 +100,15 @@ class MongoDataBase(DataBase):
         if not user_bson:
             return None
         user_bson.pop("_id")
-        return UserContext(**user_bson)
+
+        context = []
+        for o in user_bson["context"]:
+            context.append(UserMessage(role=o["role"], context=o["context"]))
+
+        output = UserContext(
+            telegram_user_id=user_bson["telegram_user_id"],
+            username=user_bson["username"],
+            context=context,
+        )
+
+        return output

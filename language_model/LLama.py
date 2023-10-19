@@ -72,5 +72,7 @@ class LLama(LanguageModel):
                 if curr_count < smallest_value:
                     smallest_id = idx
                     smallest_value = curr_count
+            output = outputs[smallest_id]
+            output = output[: output.find("\n</s>")]
 
-            return outputs[smallest_id]
+            return output
