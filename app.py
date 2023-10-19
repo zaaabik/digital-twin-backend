@@ -102,7 +102,9 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
         log.error("Error while getting user telegram_user_id=%s", telegram_user_id)
         raise OSError("Error while getting user telegram_user_id")
     user_question = UserMessage(role="user", context=text)
-    context_for_generation = [user.system_prompt] + user.context[-CONTEXT_SIZE:] + [user_question]
+    context_for_generation: list[UserMessage] = (
+        [user.system_prompt] + user.context[-CONTEXT_SIZE:] + [user_question]
+    )
 
     full_context = generate_dialog(context_for_generation)
 
