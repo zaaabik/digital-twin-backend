@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException
 from data.user_context import UserMessage
 from database.Interface import DataBase
 from database.mongo import MongoDataBase
+from language_model.Chat import Conversation
 from language_model.LLama import LLama
 from language_model.model import LanguageModel
 from utils.logger import get_pylogger
@@ -106,11 +107,13 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
         [user.system_prompt] + user.context[-CONTEXT_SIZE:] + [user_question]
     )
 
-    full_context = generate_dialog(context_for_generation)
+    conversation = Conversation.from_template(
+        "/home/jovyan/digital-twin/data/templates/chat_conversation_template_best.json"
+    )
+    conversation.expand(context_for_generation)
+    log.info("Context for model generation %s", conversation.get_prompt_for_generate(lm.tokenizer))
 
-    log.info("Context for model generation %s", full_context)
-
-    model_response = lm.generate(full_context)
+    model_response = lm.generate(conversation.get_prompt_for_generate(lm.tokenizer))
     # find start of user tokens and return all before them
     pure_response: str = model_response
 
