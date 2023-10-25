@@ -44,6 +44,13 @@ class MongoDataBase(DataBase):
         insert_result = self.collection.insert_one(bson)
         return insert_result.inserted_id
 
+    def get_all_users(self) -> Any:
+        cursor = self.collection.find({})
+        users = []
+        for document in cursor:
+            users.append(UserContext.from_bson(document))
+        return users
+
     def find_or_create_user_if_not_exists(self, telegram_user_id: str, username: str | None):
         r"""
         Create new user or return if it exists
@@ -99,20 +106,5 @@ class MongoDataBase(DataBase):
         user_bson = self.collection.find_one({"_id": object_id})
         if not user_bson:
             return None
-        user_bson.pop("_id")
 
-        context = []
-        for o in user_bson["context"]:
-            context.append(UserMessage(role=o["role"], context=o["context"]))
-
-        output = UserContext(
-            telegram_user_id=user_bson["telegram_user_id"],
-            username=user_bson["username"],
-            system_prompt=UserMessage(
-                role=user_bson["system_prompt"]["role"],
-                context=user_bson["system_prompt"]["context"],
-            ),
-            context=context,
-        )
-
-        return output
+        return UserContext.from_bson(user_bson)

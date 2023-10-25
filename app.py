@@ -72,13 +72,11 @@ def get_user(user_id: str):
     return user
 
 
-def generate_dialog(messages: list[UserMessage]):
-    template = "<s> {role}: {content}\n</s>"
-    text = ""
-    for message in messages:
-        text += template.format(role=message.role, content=message.context)
-    text += "<s> bot: "
-    return text
+@app.get("/dialog")
+def get_users():
+    r"""Get all user."""
+    all_users = database.get_all_users()
+    return all_users
 
 
 @app.patch("/dialog/{user_id}")

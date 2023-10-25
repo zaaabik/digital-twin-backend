@@ -12,6 +12,10 @@ class DataBase(ABC):
         super().__init__()
 
     @abstractmethod
+    def get_all_users(self) -> Any:
+        r"""Return all users."""
+
+    @abstractmethod
     def get_object_id_by_telegram_id(self, telegram_user_id: str) -> Any:
         r"""
         Return Mongo database ID by telegram id
