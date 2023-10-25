@@ -19,14 +19,19 @@ class UserContext:
         context = []
         for o in user_bson["context"]:
             context.append(UserMessage(role=o["role"], context=o["context"]))
+        if "system_prompt" in user_bson:
+            system_prompt_bson = user_bson["system_prompt"]
+            system_prompt = UserMessage(
+                role=system_prompt_bson["role"],
+                context=system_prompt_bson["context"],
+            )
+        else:
+            system_prompt = UserMessage(role="", context="")
 
         return UserContext(
             telegram_user_id=user_bson["telegram_user_id"],
             username=user_bson["username"],
-            system_prompt=UserMessage(
-                role=user_bson["system_prompt"]["role"],
-                context=user_bson["system_prompt"]["context"],
-            ),
+            system_prompt=system_prompt,
             context=context,
         )
 
