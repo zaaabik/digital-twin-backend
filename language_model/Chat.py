@@ -2,6 +2,8 @@ import json
 
 from transformers import PreTrainedTokenizer
 
+from data.user_context import UserMessage
+
 DEFAULT_MESSAGE_TEMPLATE = "<s>{role}\n{content}</s>\n"
 DEFAULT_SYSTEM_PROMPT = "Ты — Сайга, русскоязычный автоматический ассистент. Ты разговариваешь с людьми и помогаешь им."
 DEFAULT_START_TOKEN_ID = 1
@@ -96,15 +98,15 @@ class Conversation:
             template = json.load(r)
         return Conversation(**template)
 
-    def expand(self, messages: list[dict]):
+    def expand(self, messages: list[UserMessage]):
         r"""Add multiple messages."""
-        if len(messages) and (messages[0]["role"] == "system"):
+        if len(messages) and (messages[0].role == "system"):
             self.messages = []
 
         for message in messages:
             self.messages.append(
                 {
-                    "role": self.role_mapping.get(message["role"], message["role"]),
-                    "content": message["content"],
+                    "role": self.role_mapping.get(message.role, message.role),
+                    "content": message.context,
                 }
             )

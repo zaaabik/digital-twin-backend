@@ -8,7 +8,13 @@ from language_model.model import LanguageModel
 class LLama(LanguageModel):
     r"""Class for generation answers for bot using LLM from huggingface repos."""
 
-    def __init__(self, hf_token: str, model_name: str):
+    def __init__(
+        self,
+        hf_token: str,
+        model_name: str,
+        use_8_bit: bool = False,
+        use_flash_attention_2: bool = False,
+    ):
         r"""
         Init class for generation answers for bot
         Args:
@@ -18,8 +24,13 @@ class LLama(LanguageModel):
         login(hf_token)
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_name, torch_dtype=torch.bfloat16, device_map="auto", use_flash_attention_2=True
+            model_name,
+            torch_dtype=torch.float16,
+            device_map="auto",
+            use_flash_attention_2=use_flash_attention_2,
+            load_in_8bit=use_8_bit,
         )
 
         self.generation_config = GenerationConfig.from_pretrained(model_name, min_new_tokens=2)
