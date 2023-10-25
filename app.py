@@ -23,7 +23,8 @@ MODEL_NAME = os.environ["MODEL_NAME"]
 CONTEXT_SIZE = int(os.environ["CONTEXT_SIZE"])
 USE_8_BIT = os.getenv("USE_8_BIT", "False") == "TRUE"
 USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "False") == "TRUE"
-
+print(f"USE_8_BIT: {USE_8_BIT}")
+print(f"USE_FLASH_ATTENTION: {USE_FLASH_ATTENTION}")
 TABLE_NAME = "users"
 DATABASE_NAME = "chat"
 
