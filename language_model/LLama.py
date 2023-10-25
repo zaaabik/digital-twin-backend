@@ -33,7 +33,9 @@ class LLama(LanguageModel):
             load_in_8bit=use_8_bit,
         )
 
-        self.generation_config = GenerationConfig.from_pretrained(model_name, min_new_tokens=2)
+        self.generation_config = GenerationConfig.from_pretrained(
+            model_name, min_new_tokens=2, num_return_sequences=1
+        )
 
     def get_tokens_as_tuple(self, word: str):
         r"""
