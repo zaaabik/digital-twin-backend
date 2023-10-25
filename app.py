@@ -18,6 +18,7 @@ log = get_pylogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 connection_string = os.environ["DATABASE_CONNECTION_STRING"]
+TEMPLATE_PATH = os.environ["TEMPLATE_PATH"]
 HF_TOKEN = os.environ["HF_TOKEN"]
 MODEL_NAME = os.environ["MODEL_NAME"]
 CONTEXT_SIZE = int(os.environ["CONTEXT_SIZE"])
@@ -111,9 +112,7 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
     user_question = UserMessage(role="user", context=text)
     context_for_generation: list[UserMessage] = user.context[-CONTEXT_SIZE:] + [user_question]
 
-    conversation = Conversation.from_template(
-        "/home/jovyan/digital-twin/data/templates/chat_conversation_template_best.json"
-    )
+    conversation = Conversation.from_template(TEMPLATE_PATH)
     conversation.expand(context_for_generation)
     log.info("Context for model generation %s", conversation.get_prompt_for_generate(lm.tokenizer))
 
