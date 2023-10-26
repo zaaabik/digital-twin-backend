@@ -5,13 +5,13 @@ import logging
 import os
 
 from fastapi import FastAPI, HTTPException
+from transformers import AutoTokenizer
 
+from api.language_model import LanguageModelAPI
 from data.user_context import UserMessage
 from database.Interface import DataBase
 from database.mongo import MongoDataBase
 from language_model.Chat import Conversation
-from language_model.LLama import LLama
-from language_model.model import LanguageModel
 from utils.logger import get_pylogger
 
 log = get_pylogger(__name__)
@@ -21,11 +21,8 @@ connection_string = os.environ["DATABASE_CONNECTION_STRING"]
 TEMPLATE_PATH = os.environ["TEMPLATE_PATH"]
 HF_TOKEN = os.environ["HF_TOKEN"]
 MODEL_NAME = os.environ["MODEL_NAME"]
+LM_API_ADDRESS = os.environ["LM_API_ADDRESS"]
 CONTEXT_SIZE = int(os.environ["CONTEXT_SIZE"])
-USE_8_BIT = os.getenv("USE_8_BIT", "false") == "true"
-USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "false") == "true"
-print(f"USE_8_BIT: {USE_8_BIT}")
-print(f"USE_FLASH_ATTENTION: {USE_FLASH_ATTENTION}")
 TABLE_NAME = "users"
 DATABASE_NAME = "chat"
 
@@ -34,13 +31,10 @@ database: DataBase = MongoDataBase(
     connection_string=connection_string, database_name=DATABASE_NAME, table_name=TABLE_NAME
 )
 
-log.info("Building LM model")
-lm: LanguageModel = LLama(
-    hf_token=HF_TOKEN,
-    model_name=MODEL_NAME,
-    use_8_bit=USE_8_BIT,
-    use_flash_attention_2=USE_FLASH_ATTENTION,
-)
+log.info("Building tokenizer model")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+
+lm_api = LanguageModelAPI(LM_API_ADDRESS)
 
 app = FastAPI()
 
@@ -114,9 +108,10 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
 
     conversation = Conversation.from_template(TEMPLATE_PATH)
     conversation.expand(context_for_generation)
-    log.info("Context for model generation %s", conversation.get_prompt_for_generate(lm.tokenizer))
+    text_for_generation = conversation.get_prompt_for_generate(tokenizer)
+    log.info("Context for model generation %s", text_for_generation)
 
-    model_response = lm.generate(conversation.get_prompt_for_generate(lm.tokenizer))
+    model_response = lm_api.generate(text_for_generation)
     # find start of user tokens and return all before them
     pure_response: str = model_response
 

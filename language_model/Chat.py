@@ -4,8 +4,6 @@ from transformers import PreTrainedTokenizer
 
 from data.user_context import UserMessage
 
-DEFAULT_MESSAGE_TEMPLATE = "<s>{role}\n{content}</s>\n"
-DEFAULT_SYSTEM_PROMPT = "Ты — Сайга, русскоязычный автоматический ассистент. Ты разговариваешь с людьми и помогаешь им."
 DEFAULT_START_TOKEN_ID = 1
 DEFAULT_END_TOKEN_ID = 2
 DEFAULT_BOT_TOKEN_ID = 9225
@@ -16,8 +14,8 @@ class Conversation:
 
     def __init__(
         self,
-        message_template=DEFAULT_MESSAGE_TEMPLATE,
-        system_prompt=DEFAULT_SYSTEM_PROMPT,
+        message_template,
+        system_prompt,
         role_mapping=None,
         start_token_id=DEFAULT_START_TOKEN_ID,
         end_token_id=DEFAULT_END_TOKEN_ID,

@@ -28,4 +28,4 @@ jobs:
             HF_TOKEN=${{ secrets.HF_TOKEN }}
             MODEL_NAME=${{ secrets.MODEL_NAME }}
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/digitaltwin:${{ steps.date.outputs.date }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/digitaltwin-chat-bot:${{ steps.date.outputs.date }}
