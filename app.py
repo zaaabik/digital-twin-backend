@@ -5,6 +5,7 @@ import logging
 import os
 
 from fastapi import FastAPI, HTTPException
+from huggingface_hub import login as hf_login
 from transformers import AutoTokenizer
 
 from api.language_model import LanguageModelAPI
@@ -30,6 +31,9 @@ log.info("Open database connection")
 database: DataBase = MongoDataBase(
     connection_string=connection_string, database_name=DATABASE_NAME, table_name=TABLE_NAME
 )
+
+log.info("Logging into HF")
+hf_login(HF_TOKEN)
 
 log.info("Building tokenizer model")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
