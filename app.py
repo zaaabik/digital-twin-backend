@@ -4,11 +4,12 @@ from __future__ import annotations
 import logging
 import os
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from huggingface_hub import login as hf_login
 from transformers import AutoTokenizer
 
 from api.language_model import LanguageModelAPI
+from data.base_classes import GenerateRequest
 from data.user_context import UserMessage
 from database.Interface import DataBase
 from database.mongo import MongoDataBase
@@ -56,9 +57,8 @@ def clear_history(user_id: str):
     Args:
         user_id: User id passed to store in database
     """
-    telegram_user_id: str = user_id
-    database.clear_history(telegram_user_id=telegram_user_id)
-    log.info("Clear history user %s", telegram_user_id)
+    database.clear_history(user_id=user_id)
+    log.info("Clear history user %s", user_id)
     return {"status": "history_cleared"}
 
 
@@ -69,9 +69,8 @@ def delete_user(user_id: str):
     Args:
         user_id: User id passed to store in database
     """
-    telegram_user_id: str = user_id
-    database.remove_user(telegram_user_id=telegram_user_id)
-    log.info("Remove user %s", telegram_user_id)
+    database.remove_user(user_id=user_id)
+    log.info("Remove user %s", user_id)
     return {"status": "removed"}
 
 
@@ -82,13 +81,7 @@ def get_user(user_id: str):
     Args:
         user_id: User id passed to store in database
     """
-    telegram_user_id: str = user_id
-
-    object_id = database.get_object_id_by_telegram_id(telegram_user_id=telegram_user_id)
-    if not object_id:
-        raise HTTPException(status_code=404, detail="Item not found")
-
-    user = database.get_user(object_id=object_id)
+    user = database.get_user(user_id=user_id)
     return user
 
 
@@ -107,24 +100,19 @@ def get_users_not_deleted_messages(user_id: str, limit: int):
 
 
 @app.patch("/dialog/{user_id}")
-def update_user_messages(user_id: str, text: str, username: str = ""):
+def update_user_messages(user_id: str, generate_request: GenerateRequest):
     r"""
     Update state of user, run language model and return response
     Args:
-        user_id: User id passed to store in database
-        text: User message
-        username: Additional information about user
-            Default: ``None``
+        :param user_id: id of user, must be unique
+        :param generate_request:
     """
-    telegram_user_id: str = user_id
 
-    object_id = database.find_or_create_user_if_not_exists(
-        telegram_user_id=telegram_user_id, username=username
-    )
+    database.find_or_create_user_if_not_exists(user_id=user_id, username=generate_request.username)
     log.info("create_user_if_not_exists")
 
-    user_messages = database.get_user_not_deleted_messages(telegram_user_id, CONTEXT_SIZE) or []
-    user_question = UserMessage(role="user", context=text)
+    user_messages = database.get_user_not_deleted_messages(user_id, CONTEXT_SIZE) or []
+    user_question = UserMessage(role="user", context=generate_request.text)
 
     context_for_generation: list[UserMessage] = user_messages + [user_question]
 
@@ -138,7 +126,7 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
     pure_response: str = model_response
 
     model_answer = UserMessage(role="bot", context=pure_response)
-    database.update_user_text(object_id=object_id, texts=[user_question, model_answer])
+    database.update_user_text(user_id=user_id, texts=[user_question, model_answer])
     log.info("update_user_text model answer")
 
     return {"bot_answer": model_answer}

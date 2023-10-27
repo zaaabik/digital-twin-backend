@@ -7,7 +7,7 @@ from dataclasses import dataclass
 class UserContext:
     r"""Class hold whole user information."""
 
-    telegram_user_id: str
+    user_id: str
     username: str | None
     current_message_idx: int
     system_prompt: UserMessage
@@ -30,7 +30,7 @@ class UserContext:
             system_prompt = UserMessage(role="", context="")
 
         return UserContext(
-            telegram_user_id=user_bson["telegram_user_id"],
+            user_id=user_bson["user_id"],
             username=user_bson["username"],
             system_prompt=system_prompt,
             context=context,

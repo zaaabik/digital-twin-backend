@@ -16,60 +16,60 @@ class DataBase(ABC):
         r"""Return all users."""
 
     @abstractmethod
-    def get_object_id_by_telegram_id(self, telegram_user_id: str) -> Any:
+    def get_object_id_by_user_id(self, user_id: str) -> Any:
         r"""
-        Return Mongo database ID by telegram id
+        Return Mongo database ID by user id
         Args:
-            telegram_user_id:
+            user_id: unique user id
         """
 
     @abstractmethod
-    def find_or_create_user_if_not_exists(self, telegram_user_id: str, username: str | None):
+    def find_or_create_user_if_not_exists(self, user_id: str, username: str | None):
         r"""
         Create new user or return if it exists
         Args:
-            telegram_user_id: telegram id
-            username: telegram username
+            user_id: unique user id
+            username: user short name
         """
 
     @abstractmethod
-    def update_user_text(self, object_id: str, texts: list[UserMessage]) -> None:
+    def update_user_text(self, user_id: str, texts: list[UserMessage]) -> None:
         r"""
         Add conversation to exists user
         Args:
-            object_id: Database uniq id
+            user_id: unique user id
             texts: Tuple of conversation parts
         """
 
     @abstractmethod
-    def remove_user(self, telegram_user_id: str) -> None:
+    def remove_user(self, user_id: str) -> None:
         r"""
-        Remove user by telegram user id or doing nothing if it not exists
+        Remove user by user id or doing nothing if it not exists
         Args:
-            telegram_user_id: User id passed to store in database
+            user_id: unique user id
         """
 
     @abstractmethod
-    def get_user(self, object_id: str) -> UserContext | None:
+    def get_user(self, user_id: str) -> UserContext | None:
         r"""
         Get user object by object id
         Args:
-            object_id: Database uniq id
+            user_id: unique user id
         """
 
     @abstractmethod
     def get_user_not_deleted_messages(self, user_id: str, limit: int) -> list[UserMessage] | None:
-        r"""
-        Get user object by object id
+        r"""Get user object by object id.
+
         Args:
-            :param user_id: telegram user id
-            :param limit: max number of messages
+            user_id: unique user id
+            limit: max number of messages
         """
 
     @abstractmethod
-    def clear_history(self, telegram_user_id: str) -> None:
+    def clear_history(self, user_id: str) -> None:
         r"""
         Remove messages of user
         Args:
-            telegram_user_id: User id passed to store in database
+            user_id: User id passed to store in database
         """
