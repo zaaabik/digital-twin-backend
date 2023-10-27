@@ -6,3 +6,4 @@ uvicorn==0.23.2
 pre-commit==3.4.0
 pylint==3.0.1
 requests==2.31.0
+protobuf==4.24.3
