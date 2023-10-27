@@ -56,3 +56,20 @@ class DataBase(ABC):
         Args:
             object_id: Database uniq id
         """
+
+    @abstractmethod
+    def get_user_not_deleted_messages(self, user_id: str, limit: int) -> list[UserMessage] | None:
+        r"""
+        Get user object by object id
+        Args:
+            :param user_id: telegram user id
+            :param limit: max number of messages
+        """
+
+    @abstractmethod
+    def clear_history(self, telegram_user_id: str) -> None:
+        r"""
+        Remove messages of user
+        Args:
+            telegram_user_id: User id passed to store in database
+        """

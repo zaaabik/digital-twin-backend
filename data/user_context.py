@@ -9,6 +9,7 @@ class UserContext:
 
     telegram_user_id: str
     username: str | None
+    current_message_idx: int
     system_prompt: UserMessage
     context: list[UserMessage]
 
@@ -33,6 +34,7 @@ class UserContext:
             username=user_bson["username"],
             system_prompt=system_prompt,
             context=context,
+            current_message_idx=user_bson["current_message_idx"],
         )
 
 

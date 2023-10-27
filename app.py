@@ -49,6 +49,19 @@ def ping():
     return {"ping": "pong"}
 
 
+@app.delete("/dialog/{user_id}/context")
+def clear_history(user_id: str):
+    r"""
+    Remove all user messages
+    Args:
+        user_id: User id passed to store in database
+    """
+    telegram_user_id: str = user_id
+    database.clear_history(telegram_user_id=telegram_user_id)
+    log.info("Clear history user %s", telegram_user_id)
+    return {"status": "history_cleared"}
+
+
 @app.delete("/dialog/{user_id}")
 def delete_user(user_id: str):
     r"""
@@ -59,7 +72,7 @@ def delete_user(user_id: str):
     telegram_user_id: str = user_id
     database.remove_user(telegram_user_id=telegram_user_id)
     log.info("Remove user %s", telegram_user_id)
-    return {}
+    return {"status": "removed"}
 
 
 @app.get("/dialog/{user_id}")
@@ -86,6 +99,13 @@ def get_users():
     return all_users
 
 
+@app.get("/dialog/{user_id}/context")
+def get_users_not_deleted_messages(user_id: str, limit: int):
+    r"""Get all user."""
+    messages = database.get_user_not_deleted_messages(user_id, limit)
+    return messages
+
+
 @app.patch("/dialog/{user_id}")
 def update_user_messages(user_id: str, text: str, username: str = ""):
     r"""
@@ -103,12 +123,10 @@ def update_user_messages(user_id: str, text: str, username: str = ""):
     )
     log.info("create_user_if_not_exists")
 
-    user = database.get_user(object_id=object_id)
-    if not user:
-        log.error("Error while getting user telegram_user_id=%s", telegram_user_id)
-        raise OSError("Error while getting user telegram_user_id")
+    user_messages = database.get_user_not_deleted_messages(telegram_user_id, CONTEXT_SIZE) or []
     user_question = UserMessage(role="user", context=text)
-    context_for_generation: list[UserMessage] = user.context[-CONTEXT_SIZE:] + [user_question]
+
+    context_for_generation: list[UserMessage] = user_messages + [user_question]
 
     conversation = Conversation.from_template(TEMPLATE_PATH)
     conversation.expand(context_for_generation)

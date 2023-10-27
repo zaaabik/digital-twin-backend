@@ -8,15 +8,6 @@ from pymongo import MongoClient
 from data.user_context import UserContext, UserMessage
 from database.Interface import DataBase
 
-BASE_SYSTEM_PROMPT = (
-    "Меня зовут Артём Заболотный. Тебе 26 лет, ты закончил бакалавриат в университет "
-    "аэрокосмического приборостроения, магистратуру в Сколтехе и сейчас учишься в аспирантуре "
-    "Сколтеха. Ты работал с 2017 по 2020 в Радарио full-stack разработчиком на C#, GO, VUE, "
-    "а сейчас работаешь Senior Data Scientist в RnD отделе сбербанка."
-    " Твою девушку зовут Марина и вы с ней живете в Тбилиси, вы с ней знаете друг-друга с 10 класса"
-    " но встречаться начали только 11 июня 2023 года."
-)
-
 
 class MongoDataBase(DataBase):
     def __init__(self, connection_string: str, database_name: str, table_name: str):
@@ -31,7 +22,7 @@ class MongoDataBase(DataBase):
             telegram_user_id: telegram id
             username: telegram username
         """
-        system_prompt = UserMessage("system", BASE_SYSTEM_PROMPT)
+        system_prompt = UserMessage("system", "")
 
         bson = asdict(
             UserContext(
@@ -39,6 +30,7 @@ class MongoDataBase(DataBase):
                 username=username,
                 system_prompt=system_prompt,
                 context=[],
+                current_message_idx=0,
             )
         )
         insert_result = self.collection.insert_one(bson)
@@ -97,6 +89,17 @@ class MongoDataBase(DataBase):
             return
         self.collection.delete_one({"_id": doc["_id"]})
 
+    def clear_history(self, telegram_user_id: str) -> None:
+        r"""
+        Remove messages of user
+        Args:
+            telegram_user_id: User id passed to store in database
+        """
+        self.collection.update_one(
+            {"telegram_user_id": telegram_user_id},
+            [{"$set": {"current_message_idx": {"$size": "$context"}}}],
+        )
+
     def get_user(self, object_id: str) -> UserContext | None:
         r"""
         Get user object by object id
@@ -108,3 +111,36 @@ class MongoDataBase(DataBase):
             return None
 
         return UserContext.from_bson(user_bson)
+
+    def get_user_not_deleted_messages(self, user_id: str, limit: int) -> list[UserMessage] | None:
+        r"""
+        Get user object by object id
+        Args:
+            :param user_id: telegram user id
+            :param limit: max number of messages
+        """
+
+        user_messages = self.collection.aggregate(
+            [
+                {"$match": {"telegram_user_id": user_id}},
+                {
+                    "$project": {
+                        "filtered_messages": {
+                            "$slice": ["$context", "$current_message_idx", 100_000]
+                        }
+                    }
+                },
+                {
+                    "$project": {
+                        "filtered_messages": {
+                            "$lastN": {"input": "$filtered_messages", "n": limit}
+                        }
+                    }
+                },
+            ]
+        )
+        element = user_messages.try_next()
+        if not element:
+            return None
+
+        return [UserMessage(**i) for i in element["filtered_messages"]]
