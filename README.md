@@ -1,9 +1,17 @@
 # Digital twin backed
 
-Server for handling user requests, operating with conversation history, and
-use LLM service to generate responses.
+Project to copy conversation style using LLM model trainer on conversation in
+instagram, telegram, vk, and own dataset.
 
-**TAGS: REST API, FastApi, MongoDB, GitHub Actions, Docker**
+Server for handling user requests, operating with conversation history.
+
+Project consist of multiple-repos:
+
+1. [TG_BOT github](https://github.com/zaaabik/digital-twin-tg-bot)
+2. [LLM service](https://github.com/zaaabik/digital-twin-llm-backend)
+3. [Data preprocessing and training](https://github.com/zaaabik/digital-twin)
+
+How to run this repo:
 
 ```bash
 docker pull zaaabik/digitaltwin-chat-bot:[TAG]
@@ -14,3 +22,5 @@ docker run -e CONTEXT_SIZE=8 -e DATABASE_CONNECTION_STRING=***MONGO_CONNECTION_S
  -e TEMPLATE_PATH=templates/chat_conversation_template.json \
  -p 52111:52111 zaaabik/digitaltwin-chat-bot:[TAG]
 ```
+
+**TAGS: REST API, FastApi, MongoDB, GitHub Actions, Docker**
