@@ -33,7 +33,7 @@ HF_TOKEN = os.environ["HF_TOKEN"]
 MODEL_NAME = os.environ["MODEL_NAME"]
 LM_API_ADDRESS = os.environ["LM_API_ADDRESS"]
 CONTEXT_SIZE = int(os.environ["CONTEXT_SIZE"])
-TABLE_NAME = "telegram_users"
+TABLE_NAME = "telegram_users_TESTS"
 DATABASE_NAME = "chat"
 
 log.info("Open database connection")
@@ -172,19 +172,6 @@ def set_message_possible_context_ids(
     return {"ids": set_message_possible_ids.possible_contexts_ids}
 
 
-@app.post("/users/{user_id}/context/{message_id}/user_choice")
-def set_user_choice_answer(user_id: str, answer_id: str, user_choice: SetUserChoice):
-    r"""
-    Update state of message
-    Args:
-        user_id: id of user, must be unique
-        answer_id: DB id of model answer
-        user_choice: id of message chosen by the user
-    """
-    choice_text = database.update_user_choice(user_id, answer_id, user_choice.message_id)
-    return {"text": choice_text}
-
-
 @app.post("/users/{user_id}/context/messages/custom_answer")
 def set_user_choice_custom_answer(user_id: str, user_custom_answer: SetUserCustomAnswer):
     r"""
@@ -197,3 +184,16 @@ def set_user_choice_custom_answer(user_id: str, user_custom_answer: SetUserCusto
         user_id, user_custom_answer.message_id, user_custom_answer.custom_text
     )
     return {"text": user_custom_answer.custom_text}
+
+
+@app.post("/users/{user_id}/context/{answer_id}/user_choice")
+def set_user_choice_answer(user_id: str, answer_id: str, user_choice: SetUserChoice):
+    r"""
+    Update state of message
+    Args:
+        user_id: id of user, must be unique
+        answer_id: DB id of model answer
+        user_choice: id of message chosen by the user
+    """
+    choice_text = database.update_user_choice(user_id, answer_id, user_choice.message_id)
+    return {"text": choice_text}
