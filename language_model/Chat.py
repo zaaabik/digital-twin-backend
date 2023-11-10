@@ -2,7 +2,7 @@ import json
 
 from transformers import PreTrainedTokenizer
 
-from data.user_context import UserMessage
+from data.user_context import BaseMessage
 
 DEFAULT_START_TOKEN_ID = 1
 DEFAULT_END_TOKEN_ID = 2
@@ -90,13 +90,13 @@ class Conversation:
         return final_text.strip()
 
     @classmethod
-    def from_template(cls, file_name: str):
+    def from_template(cls, file_name: str, **kwargs):
         r"""Init class from json template."""
         with open(file_name, encoding="UTF-8") as r:
             template = json.load(r)
-        return Conversation(**template)
+        return Conversation(**{**template, **kwargs})
 
-    def expand(self, messages: list[UserMessage]):
+    def expand(self, messages: list[BaseMessage]):
         r"""Add multiple messages."""
         if len(messages) and (messages[0].role == "system"):
             self.messages = []

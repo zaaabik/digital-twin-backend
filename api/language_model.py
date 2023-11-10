@@ -1,6 +1,6 @@
 import requests
 
-HEADERS = {"Accept": "application/json"}
+from data.base_classes import GenerationLLMResponse
 
 
 class LanguageModelAPI:
@@ -9,8 +9,11 @@ class LanguageModelAPI:
     def __init__(self, base_api_path):
         self.base_api_path = base_api_path
 
-    def generate(self, text: str):
-        """Function will call LLM api and return answer for user :str text: object."""
+    def generate(self, text: str) -> GenerationLLMResponse:
+        """Function will call LLM api and return answer for user text
+        Args:
+            text: user question with context
+        """
         path = f"{self.base_api_path}/generate"
-        answer = requests.post(url=path, json={"text": text}, timeout=180)
-        return answer.json()["generated_text"]
+        answer = requests.post(url=path, json={"text": text}, timeout=180).json()
+        return GenerationLLMResponse(**answer)
