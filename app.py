@@ -33,7 +33,7 @@ HF_TOKEN = os.environ["HF_TOKEN"]
 MODEL_NAME = os.environ["MODEL_NAME"]
 LM_API_ADDRESS = os.environ["LM_API_ADDRESS"]
 CONTEXT_SIZE = int(os.environ["CONTEXT_SIZE"])
-TABLE_NAME = "telegram_users_TESTS"
+TABLE_NAME = os.environ["TABLE_NAME"]
 DATABASE_NAME = "chat"
 
 log.info("Open database connection")
