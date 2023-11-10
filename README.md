@@ -20,6 +20,7 @@ docker run -e CONTEXT_SIZE=8 -e DATABASE_CONNECTION_STRING=***MONGO_CONNECTION_S
  -e LM_API_ADDRESS=***IP_ADRESS_LLM_SERVER*** \
  -e MODEL_NAME=***HF_MODEL_NAME*** \
  -e TEMPLATE_PATH=templates/chat_conversation_template.json \
+ -e TABLE_NAME="telegram_users" \
  -p 52111:52111 zaaabik/digitaltwin-chat-bot:[TAG]
 ```
 
